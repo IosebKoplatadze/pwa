@@ -1,43 +1,18 @@
 <div>
   <h1>Title</h1>
+  <div *ngIf="todos">
+    <div *ngFor="let key of keys(todos)">
+      <label [for]="key">{{ key }}</label
+      ><input
+        type="checkbox"
+        [name]="key"
+        [id]="key"
+        [(ngModel)]="todos[key]"
+      />
+    </div>
 
-  <table>
-    <tr>
-      <th>description</th>
-      <th>value</th>
-      <th>notes</th>
-    </tr>
-    <tr>
-      <td>bla bla bla</td>
-      <td>
-        <div>yes<input type="checkbox" /></div>
-        <div>no<input type="checkbox" /></div>
-      </td>
-      <td>notes</td>
-    </tr>
-    <tr>
-      <td>bla bla bla</td>
-      <td>
-        <div>yes<input type="checkbox" /></div>
-        <div>no<input type="checkbox" /></div>
-      </td>
-      <td>notes</td>
-    </tr>
-    <tr>
-      <td>bla bla bla</td>
-      <td>
-        <div>yes<input type="checkbox" /></div>
-        <div>no<input type="checkbox" /></div>
-      </td>
-      <td>notes</td>
-    </tr>
-    <tr>
-      <td>bla bla bla</td>
-      <td>
-        <div>yes<input type="checkbox" /></div>
-        <div>no<input type="checkbox" /></div>
-      </td>
-      <td>notes</td>
-    </tr>
-  </table>
+    <button type="submit" (click)="onSave()">Save</button>
+  </div>
+  <span *ngIf="loading">loading...</span>
+  <button type="button" *ngIf="needSync" (click)="onSave()">Sync</button>
 </div>
