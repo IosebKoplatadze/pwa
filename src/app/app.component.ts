@@ -18,7 +18,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.client
-      .get<any>('http://localhost:8080/todos')
+      .get<any>('api/todos')
       .pipe(
         finalize(() => {
           console.log('todos = ', this.todos);
@@ -42,7 +42,7 @@ export class AppComponent implements OnInit {
   onSave(): void {
     this.loading = true;
     this.client
-      .post<any>('http://localhost:8080/todos', this.todos)
+      .post<any>('api/todos', this.todos)
       .pipe(
         finalize(() => {
           console.log('todos = ', this.todos);

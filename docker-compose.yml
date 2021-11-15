@@ -6,3 +6,12 @@ services:
     image: pwa
     ports:
       - "80:80"
+
+  api:
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    container_name: pwa-api
+    image: pwa-api
+    ports:
+      - "8080:8080"
