@@ -22,66 +22,80 @@ export class AppComponent implements OnInit {
     window.addEventListener('online', () => this.updateOnlineStatus());
     window.addEventListener('offline', () => this.updateOnlineStatus());
 
-    this.client
-      .get<any>('api/todos')
-      .pipe(
-        finalize(() => {
-          console.log('todos = ', this.todos);
-          this.loading = false;
-        })
-      )
-      .subscribe(
-        (todos) => {
-          console.log('get data from api');
-          const cachedData = this.cachedData;
-          this.needSync = cachedData && !isEqual(cachedData, todos);
-          this.todos = this.needSync ? cachedData : todos;
-        },
-        () => {
-          this.todos = this.cachedData;
-          console.log('get data from storage');
-        }
-      );
+    this.getData();
   }
 
-  onSave(): void {
-    this.loading = true;
+  private getData(): void {
+    const updateDataFromCache = async () => {
+      this.todos = await this.cachedData;
+      console.log('get data from storage', this.todos);
+    };
     if (this.isOnline) {
       this.client
-        .post<any>('api/todos', this.todos)
+        .get<any>('api/todos')
         .pipe(
           finalize(() => {
             console.log('todos = ', this.todos);
-            this.cacheData();
+            this.loading = false;
+          })
+        )
+        .subscribe(async (todos) => {
+          console.log('get data from api');
+          const cachedData = await this.cachedData;
+          this.needSync = cachedData && !isEqual(cachedData, todos);
+          this.todos = this.needSync ? cachedData : todos;
+        }, updateDataFromCache);
+    } else {
+      updateDataFromCache();
+    }
+  }
+
+  onSave(): void {
+    if (this.isOnline) {
+      this.loading = true;
+      this.client
+        .post<any>('api/todos', this.todos)
+        .pipe(
+          finalize(async () => {
+            console.log('todos = ', this.todos);
+            await this.cacheData();
             this.loading = false;
           })
         )
         .subscribe(() => {
           this.needSync = false;
         });
-    } else if ((window as any).flutter_inappwebview) {
-      (window as any).flutter_inappwebview
-        .callHandler('passData', this.todos)
-        ?.then(() => {
-          this.loading = false;
-        });
-      console.log(22222222);
+    } else {
+      this.cacheData();
     }
   }
 
-  private get cachedData(): any {
-    return JSON.parse(localStorage.getItem('todos') ?? 'null');
+  private get cachedData(): Promise<any> {
+    if ((window as any).flutter_inappwebview) {
+      return (window as any).flutter_inappwebview.callHandler(
+        'getDataFromStorage'
+      );
+    } else {
+      return Promise.resolve(
+        JSON.parse(localStorage.getItem('todos') ?? 'null')
+      );
+    }
   }
 
-  private cacheData(): void {
-    localStorage.setItem('todos', JSON.stringify(this.todos));
+  private cacheData(): Promise<void> {
+    if ((window as any).flutter_inappwebview) {
+      return (window as any).flutter_inappwebview.callHandler(
+        'passData',
+        this.todos
+      );
+    } else {
+      return Promise.resolve(
+        localStorage.setItem('todos', JSON.stringify(this.todos))
+      );
+    }
   }
 
   private updateOnlineStatus(): void {
     this.isOnline = navigator.onLine;
-    console.log(
-      '🚀 ~ file: app.component.ts ~ line 82 ~ AppComponent ~ updateOnlineStatus ~ this.isOnline',
-      this.isOnline
-    );
   }
 }
