@@ -46,21 +46,20 @@ export class AppComponent implements OnInit {
 
   onSave(): void {
     this.loading = true;
-    // if (this.isOnline) {
-    // this.client
-    //   .post<any>('api/todos', this.todos)
-    //   .pipe(
-    //     finalize(() => {
-    //       console.log('todos = ', this.todos);
-    //       this.cacheData();
-    //       this.loading = false;
-    //     })
-    //   )
-    //   .subscribe(() => {
-    //     this.needSync = false;
-    //   });
-    // } else
-    if ((window as any).flutter_inappwebview) {
+    if (this.isOnline) {
+      this.client
+        .post<any>('api/todos', this.todos)
+        .pipe(
+          finalize(() => {
+            console.log('todos = ', this.todos);
+            this.cacheData();
+            this.loading = false;
+          })
+        )
+        .subscribe(() => {
+          this.needSync = false;
+        });
+    } else if ((window as any).flutter_inappwebview) {
       (window as any).flutter_inappwebview
         .callHandler('passData', this.todos)
         ?.then(() => {
