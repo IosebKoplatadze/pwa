@@ -19,8 +19,8 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.updateOnlineStatus();
-    window.addEventListener('online', () => this.updateOnlineStatus);
-    window.addEventListener('offline', () => this.updateOnlineStatus);
+    window.addEventListener('online', () => this.updateOnlineStatus());
+    window.addEventListener('offline', () => this.updateOnlineStatus());
 
     this.client
       .get<any>('api/todos')
@@ -65,6 +65,7 @@ export class AppComponent implements OnInit {
         ?.then(() => {
           this.loading = false;
         });
+      console.log(22222222);
     }
   }
 
@@ -78,5 +79,9 @@ export class AppComponent implements OnInit {
 
   private updateOnlineStatus(): void {
     this.isOnline = navigator.onLine;
+    console.log(
+      '🚀 ~ file: app.component.ts ~ line 82 ~ AppComponent ~ updateOnlineStatus ~ this.isOnline',
+      this.isOnline
+    );
   }
 }
