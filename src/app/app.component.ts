@@ -13,10 +13,15 @@ export class AppComponent implements OnInit {
   todos: any;
   loading = true;
   needSync = false;
+  isOnline = true;
 
   constructor(private client: HttpClient) {}
 
   ngOnInit(): void {
+    this.updateOnlineStatus();
+    window.addEventListener('online', () => this.updateOnlineStatus);
+    window.addEventListener('offline', () => this.updateOnlineStatus);
+
     this.client
       .get<any>('api/todos')
       .pipe(
@@ -41,18 +46,26 @@ export class AppComponent implements OnInit {
 
   onSave(): void {
     this.loading = true;
-    this.client
-      .post<any>('api/todos', this.todos)
-      .pipe(
-        finalize(() => {
-          console.log('todos = ', this.todos);
-          this.cacheData();
+    if (this.isOnline) {
+      this.client
+        .post<any>('api/todos', this.todos)
+        .pipe(
+          finalize(() => {
+            console.log('todos = ', this.todos);
+            this.cacheData();
+            this.loading = false;
+          })
+        )
+        .subscribe(() => {
+          this.needSync = false;
+        });
+    } else if ((window as any).flutter_inappwebview) {
+      (window as any).flutter_inappwebview
+        .callHandler('passDate', this.todos)
+        ?.then(() => {
           this.loading = false;
-        })
-      )
-      .subscribe(() => {
-        this.needSync = false;
-      });
+        });
+    }
   }
 
   private get cachedData(): any {
@@ -61,5 +74,9 @@ export class AppComponent implements OnInit {
 
   private cacheData(): void {
     localStorage.setItem('todos', JSON.stringify(this.todos));
+  }
+
+  private updateOnlineStatus(): void {
+    this.isOnline = navigator.onLine;
   }
 }
