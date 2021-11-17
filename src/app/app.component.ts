@@ -62,7 +62,7 @@ export class AppComponent implements OnInit {
     // } else
     if ((window as any).flutter_inappwebview) {
       (window as any).flutter_inappwebview
-        .callHandler('passDate', this.todos)
+        .callHandler('passData', this.todos)
         ?.then(() => {
           this.loading = false;
         });
