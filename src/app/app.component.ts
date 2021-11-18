@@ -12,9 +12,7 @@ export class AppComponent implements OnInit {
   keys = Object.keys;
   todos: any;
   loading = true;
-  needSync = false;
   isOnline = true;
-  dataFromFlutter: any;
 
   constructor(private client: HttpClient) {}
 
@@ -22,17 +20,7 @@ export class AppComponent implements OnInit {
     this.updateOnlineStatus();
     window.addEventListener('online', async () => {
       this.updateOnlineStatus();
-      this.loading = true;
-      this.client
-        .post<any>('api/todos', await this.cacheData())
-        .pipe(
-          finalize(() => {
-            this.loading = false;
-          })
-        )
-        .subscribe(() => {
-          this.needSync = false;
-        });
+      this.onSave();
     });
     window.addEventListener('offline', () => this.updateOnlineStatus());
 
@@ -42,6 +30,7 @@ export class AppComponent implements OnInit {
   private getData(): void {
     const updateDataFromCache = async () => {
       this.todos = await this.cachedData;
+      this.loading = false;
       console.log('get data from storage', this.todos);
     };
     if (this.isOnline) {
@@ -56,21 +45,20 @@ export class AppComponent implements OnInit {
         .subscribe(async (todos) => {
           console.log('get data from api');
           const cachedData = await this.cachedData;
-          this.needSync = cachedData && !isEqual(cachedData, todos);
-          this.todos = this.needSync ? cachedData : todos;
+          const needSync = cachedData && !isEqual(cachedData, todos);
+          this.todos = needSync ? cachedData : todos;
+          if (needSync) {
+            this.onSave();
+          }
         }, updateDataFromCache);
     } else {
       updateDataFromCache();
     }
   }
 
-  async onGetDataFromFlutter() {
-    this.dataFromFlutter = await this.cachedData;
-  }
-
-  onSave(): void {
+  async onSave() {
+    this.loading = true;
     if (this.isOnline) {
-      this.loading = true;
       this.client
         .post<any>('api/todos', this.todos)
         .pipe(
@@ -80,11 +68,10 @@ export class AppComponent implements OnInit {
             this.loading = false;
           })
         )
-        .subscribe(() => {
-          this.needSync = false;
-        });
+        .subscribe();
     } else {
-      this.cacheData();
+      await this.cacheData();
+      this.loading = false;
     }
   }
 

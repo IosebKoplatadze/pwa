@@ -15,8 +15,4 @@
     <button type="submit" (click)="onSave()">Save</button>
   </div>
   <span *ngIf="loading">loading...</span>
-  <!-- <button type="button" *ngIf="needSync" (click)="onSave()">Sync</button> -->
-
-  <button (click)="onGetDataFromFlutter()">get Data from Flutter</button>
-  <span>{{ dataFromFlutter | json }}</span>
 </div>
