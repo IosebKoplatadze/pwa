@@ -14,12 +14,26 @@ export class AppComponent implements OnInit {
   loading = true;
   needSync = false;
   isOnline = true;
+  dataFromFlutter: any;
 
   constructor(private client: HttpClient) {}
 
   ngOnInit(): void {
     this.updateOnlineStatus();
-    window.addEventListener('online', () => this.updateOnlineStatus());
+    window.addEventListener('online', async () => {
+      this.updateOnlineStatus();
+      this.loading = true;
+      this.client
+        .post<any>('api/todos', await this.cacheData())
+        .pipe(
+          finalize(() => {
+            this.loading = false;
+          })
+        )
+        .subscribe(() => {
+          this.needSync = false;
+        });
+    });
     window.addEventListener('offline', () => this.updateOnlineStatus());
 
     this.getData();
@@ -48,6 +62,10 @@ export class AppComponent implements OnInit {
     } else {
       updateDataFromCache();
     }
+  }
+
+  async onGetDataFromFlutter() {
+    this.dataFromFlutter = await this.cachedData;
   }
 
   onSave(): void {
