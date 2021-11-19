@@ -15,4 +15,7 @@
     <button type="submit" (click)="onSave()">Save</button>
   </div>
   <span *ngIf="loading">loading...</span>
+  <div style="margin-top: 100px">
+    {{ todos | json }}
+  </div>
 </div>
